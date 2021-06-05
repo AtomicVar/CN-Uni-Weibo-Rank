@@ -4,7 +4,7 @@
 
 Python 3 单文件脚本（ `run.py` ），仅依赖 [requests](https://github.com/psf/requests) 进行数据爬取。
 
-输出样例（2021年4月7日获取）：
+输出样例（2021年6月5日获取）：
 
 ```
 排名　　　　　校名　　　　　         微博数         粉丝数
