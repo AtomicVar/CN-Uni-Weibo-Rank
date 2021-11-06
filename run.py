@@ -67,11 +67,18 @@ def progress(current, total):
     print("]", end="")
 
 
-def parse_as_number(s):
-    n = float(s[:-1])
+def parse(s):
     if s.endswith("万"):
-        n *= 10000
-    return int(n)
+        return int(float(s[:-1]) * 10000)
+    else:
+        return int(s)
+
+
+def parse_inv(n):
+    if n < 10000:
+        return str(n)
+    else:
+        return str(n / 10000) + "万"
 
 
 if __name__ == "__main__":
@@ -88,7 +95,7 @@ if __name__ == "__main__":
             school = {}
             school["name"] = info.get("screen_name", "")
             school["s_count"] = info.get("statuses_count", 0)
-            school["f_count"] = parse_as_number(info.get("followers_count", 0))
+            school["f_count"] = parse(info.get("followers_count", 0))
             schools.append(school)
             if not run_in_github_actions:
                 progress(count, len(USER_IDS))
@@ -109,8 +116,8 @@ if __name__ == "__main__":
 
     rank = 1
     for s in schools:
-        line = "{1:>4}{2:{0}^12}{3:>15,}{4:>15,}".format(
-            chr(12288), rank, s["name"], s["s_count"], s["f_count"]
+        line = "{1:>3}{2:{0}^12}{3:>14,}{4:>12}".format(
+            chr(12288), rank, s["name"], s["s_count"], parse_inv(s["f_count"])
         )
         if not run_in_github_actions:
             print(line)
