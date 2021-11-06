@@ -2,6 +2,8 @@
 # -*- coding: UTF-8 -*-
 
 import requests
+import sys
+from datetime import datetime
 
 
 USER_IDS = [
@@ -28,15 +30,31 @@ USER_IDS = [
     "5396134858",  # 北京航天航空大学
     "1805101535",  # 南京航天航空大学
     "5016338752",  # 郑州大学
-
     "3552074150",  # 牛津大学
 ]
+
+README_TEMPLATE = """
+# 中国高校微博排行
+
+按官方微博粉丝数量进行排名。
+
+Python 3 单文件脚本（ `run.py` ），仅依赖 [requests](https://github.com/psf/requests) 进行数据爬取。
+
+输出样例（{}获取）：
+
+```
+{}
+```
+
+目前高校数量：24。如需添加，可在 issue 中提出。
+"""
 
 
 def get_json(params):
     url = "https://m.weibo.cn/api/container/getIndex?"
     r = requests.get(url, params=params)
     return r.json()
+
 
 def progress(current, total):
     max_len = 80
@@ -48,7 +66,17 @@ def progress(current, total):
         print(" ", end="")
     print("]", end="")
 
+
+def parse_as_number(s):
+    n = float(s[:-1])
+    if s.endswith("万"):
+        n *= 10000
+    return int(n)
+
+
 if __name__ == "__main__":
+    run_in_github_actions = len(sys.argv) > 1 and sys.argv[1] == "--run-in-gh"
+
     schools = []
     count = 0
     for user_id in USER_IDS:
@@ -60,17 +88,42 @@ if __name__ == "__main__":
             school = {}
             school["name"] = info.get("screen_name", "")
             school["s_count"] = info.get("statuses_count", 0)
-            school["f_count"] = info.get("followers_count", 0)
+            school["f_count"] = parse_as_number(info.get("followers_count", 0))
             schools.append(school)
-            progress(count, len(USER_IDS))
+            if not run_in_github_actions:
+                progress(count, len(USER_IDS))
         else:
             print("ERROR in %s" % user_id)
+
     schools.sort(key=lambda x: x["f_count"], reverse=True)
 
-    print("\n{1:>2}{2:{0}^12}{3:>12}{4:>12}".format(chr(12288), "排名", "校名", "微博数", "粉丝数"))
+    output = ""
+
+    header = "\n{1:>2}{2:{0}^12}{3:>12}{4:>12}".format(
+        chr(12288), "排名", "校名", "微博数", "粉丝数"
+    )
+    if not run_in_github_actions:
+        print(header)
+    else:
+        output += header + "\n"
+
     rank = 1
     for s in schools:
-        print("{1:>4}{2:{0}^12}{3:>15,}{4:>15,}".format(chr(12288), rank, s["name"], s["s_count"], s["f_count"]))
+        line = "{1:>4}{2:{0}^12}{3:>15,}{4:>15,}".format(
+            chr(12288), rank, s["name"], s["s_count"], s["f_count"]
+        )
+        if not run_in_github_actions:
+            print(line)
+        else:
+            output += line + "\n"
         rank += 1
 
-    print("\nDone.")
+    if not run_in_github_actions:
+        print("\nDone.")
+    else:
+        with open("README.md", "w") as f:
+            f.write(
+                README_TEMPLATE.format(
+                    datetime.today().strftime("%Y年%m月%d日%H时%M分%S秒"), output
+                )
+            )
