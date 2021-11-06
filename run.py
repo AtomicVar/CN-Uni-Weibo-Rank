@@ -47,6 +47,8 @@ Python 3 单文件脚本（ `run.py` ），仅依赖 [requests](https://github.c
 ```
 
 目前高校数量：24。如需添加，可在 issue 中提出。
+
+（本 README 由 GitHub Actions 运行 run.py 自动生成）
 """
 
 
@@ -116,7 +118,7 @@ if __name__ == "__main__":
 
     rank = 1
     for s in schools:
-        line = "{1:>3}{2:{0}^12}{3:>14,}{4:>12}".format(
+        line = "{1:>3}{2:{0}^12}{3:>15,}{4:>13}".format(
             chr(12288), rank, s["name"], s["s_count"], parse_inv(s["f_count"])
         )
         if not run_in_github_actions:
